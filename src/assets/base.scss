@@ -1,0 +1,12 @@
+a {
+  text-decoration: none;
+  color: rgb(var(--v-theme-primary-lighten-2));
+
+  &:hover {
+    color: rgb(var(--v-theme-primary));
+  }
+}
+
+.primary {
+  color: black !important;
+}

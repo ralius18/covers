@@ -1,29 +1,55 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
-  </div>
+  <v-app>
+    <v-main class="main">
+      <header-bar />
+      <router-view class="router-view" />
+    </v-main>
+  </v-app>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import HelloWorld from "./components/HelloWorld.vue";
+import Vue from "vue"
+import HeaderBar from "@/components/HeaderBar.vue"
+import firebase from 'firebase/compat/app'
+import { useStore } from '@/stores/main'
 
 export default Vue.extend({
   name: "App",
+
   components: {
-    HelloWorld,
+    HeaderBar
   },
-});
+
+  beforeCreate() {
+    firebase.auth().onAuthStateChanged((user) => {
+      const store = useStore()
+      store.fetchUser(user)
+      if (store.user.loggedIn && this.$route.path === '/login') {
+        this.$router.replace('/')
+      } else if (!store.user.loggedIn && this.$route.path !== '/login') {
+        this.$router.replace('/login')
+      }
+    })
+  }
+})
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style lang="scss">
+@import 'assets/base.scss';
+
+.main {
+  width: 1200px;
+  margin: 0 auto 64px;
+  padding: 0 64px !important;
+  // padding-bottom: 64px;
+}
+
+.v-application {
+  min-height: 100vh;
+}
+
+.router-view {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>
