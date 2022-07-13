@@ -1,33 +1,68 @@
 <template>
   <div>
     <header-actions>
-      <v-text-field dense v-model="search" class="search" label="Search" clearable outlined />
+      <v-text-field
+        dense
+        v-model="search"
+        class="search"
+        label="Search"
+        clearable
+        outlined />
     </header-actions>
 
-    <b>Total:</b> {{ songs.length }}
-    <div v-if="isSetList">
-      <b>Duration:</b> {{ totalDuration }}
-    </div>
+    <v-container>
+      <b>Total:</b> {{ sortedSongs.length }}
+      <div v-if="isSetList">
+        <b>Duration:</b> {{ totalDuration }}
+      </div>
 
-    <v-data-table class="song-list" :headers="headers" :headerProps="headerProps" :items="sortedSongs" sort-by="artist" :search="search" hide-default-footer
-      disable-pagination @click:row="clickRow" :loading="loading">
-      <template v-slot:item.addToSet="{ item }">
-        <v-btn v-if="item.in_set_list" color="primary" fab x-small @click.stop="onSetListClick(item)">
-          <v-icon>mdi-check</v-icon>
-        </v-btn>
-        <v-btn v-else color="primary" fab x-small outlined @click.stop="onSetListClick(item)">
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
-      </template>
+      <v-data-table
+        class="song-list"
+        :headers="headers"
+        :items="sortedSongs"
+        :sort-by="sortBy"
+        :search="search"
+        @click:row="clickRow"
+        :loading="loading"
+        multi-sort
+        disable-pagination
+        hide-default-footer
+      >
+        <template #item.addToSet="{ item }">
+          <v-btn
+            v-if="item.in_set_list"
+            color="primary"
+            fab
+            x-small
+            @click.stop="onSetListClick(item)"
+          >
+            <v-icon>mdi-check</v-icon>
+          </v-btn>
+          <v-btn
+            v-else
+            color="primary"
+            fab
+            x-small
+            outlined
+            @click.stop="onSetListClick(item)"
+          >
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </template>
 
-      <template v-slot:item.tab_link="{ item }">
-        <v-icon v-if="item.tab_link != ''" color="primary">mdi-check</v-icon>
-      </template>
+        <template #item.tab_link="{ item }">
+          <v-icon v-if="item.tab_link != ''" color="primary">mdi-check</v-icon>
+        </template>
 
-      <template v-slot:item.duration_seconds="{ item }">
-        {{ secondsToMinutes(item.duration_seconds) }}
-      </template>
-    </v-data-table>
+        <template #item.duration_seconds="{ item }">
+          {{ secondsToMinutes(item.duration_seconds) }}
+        </template>
+
+        <template #item.capo="{ item }">
+          {{ parseInt(item.capo) > -1 ? item.capo : '' }}
+        </template>
+      </v-data-table>
+    </v-container>
   </div>
 </template>
 
@@ -51,17 +86,17 @@ export default Vue.extend({
     }
   },
 
-  firestore: {
-    songs: db.collection('songs'),
+  mounted () {
+    this.$bind('songs', db.collection('songs'))
+      .then(() => {
+        this.loading = false
+      })
   },
 
   data() {
     return{
       search: '',
       songs: [] as Song[],
-      headerProps: {
-        sortIcon: 'mdi-arrow-drop-down'
-      },
       headers: [
         { text: "", value: "addToSet", width: 50, sortable: false },
         { text: "Title", value: "title" },
@@ -70,12 +105,11 @@ export default Vue.extend({
         { text: "Genre", value: "genre", width: 120 },
         { text: "Capo", value: "capo", width: 80 },
         { text: "Key", value: "song_key", width: 70 },
-        { text: "Tuning", value: "tuning", width: 100 },
-        { text: "Duration", value: "duration_seconds", width: 100 },
+        { text: "Tuning", value: "tuning", width: 120 },
+        { text: "Duration", value: "duration_seconds", width: 100 }
       ],
-      sortBy: 'artist',
-      sortAsc: true,
-      loading: false
+      sortBy: ['artist', 'title'],
+      loading: true
     }
   },
 
@@ -137,49 +171,11 @@ export default Vue.extend({
       }
     },
 
-    sortByColThenArtist(col: string, arr: Song[]): Song[] {
-      let sortedArr = arr
-      switch (col) {
-        case 'tab':
-          sortedArr = arr.sort((a, b) => {
-            if (a.tab_link != '' && b.tab_link == '') {
-              return -1
-            } else if (a.tab_link == '' && b.tab_link != '') {
-              return 1
-            } else {
-              return 0
-            }
-          })
-      }
-      return this.sortByArtist(sortedArr)
-    },
-
-    sortByArtist(arr: Song[]): Song[] {
-      return arr.sort((a, b) => {
-        let aArtist = a.artist.replace('The ', '')
-        let bArtist = b.artist.replace('The ', '')
-        if (aArtist == bArtist) {
-          if (this.sortAsc) {
-            return a.title.localeCompare(b.title)
-          } else {
-            return b.title.localeCompare(b.title)
-          }
-        }
-        if (this.sortAsc) {
-          return aArtist.localeCompare(bArtist)
-        } else {
-          return bArtist.localeCompare(aArtist)
-        }
-      })
-    },
-
-    changeSort(event: any) {
-      if (this.sortBy == event.target.id) {
-        this.sortAsc = !this.sortAsc
-      } else {
-        this.sortBy = event.target.id
-        this.sortAsc = true
-      }
+    compareByArtist (a: string, b: string): number {
+      console.log('compare')
+      let aArtist = a.replace('The ', '')
+      let bArtist = b.replace('The ', '')
+      return aArtist.localeCompare(bArtist)
     }
   },
 
