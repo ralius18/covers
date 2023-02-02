@@ -16,30 +16,54 @@
               <v-text-field outlined dense v-model="song_key" label="Key" />
               <v-text-field outlined dense v-model="tuning" label="Tuning" />
               <v-text-field outlined dense :rules="[rules.time]" v-model="duration" label="Duration" />
-              <v-text-field outlined dense v-model="tab_link" label="Tab" />
+<!--              <v-text-field outlined dense v-model="tab_link" label="Tab" />-->
             </v-row>
-            <v-row>
-              <v-btn v-if="tab_link != '' && songExists" append-icon="mdi-open-in-new" color="secondary" class="mr-4"
-                :href="tab_link" target="_blank">
-                View Tab
+            <v-row float="right">
+              <v-btn
+                v-if="tab_link != '' && songExists"
+                color="secondary"
+                class="mr-4 mt-4"
+                target="_blank"
+                :href="tab_link"
+              >
+                Tab Link
+                <v-icon class="ml-2">mdi-open-in-new</v-icon>
               </v-btn>
-              <v-btn v-if="songExists" append-icon="mdi-open-in-new" color="secondary" :href="lyrics_url"
-                target="_blank">
-                View Lyrics</v-btn>
+              <v-btn
+                v-if="songExists"
+                color="secondary"
+                class="mt-4"
+                :href="lyrics_url"
+                target="_blank"
+              >
+                View Lyrics
+                <v-icon class="ml-2">mdi-open-in-new</v-icon>
+              </v-btn>
 
               <v-spacer />
 
-              <v-btn v-if="songExists && in_set_list" color="secondary" class="mr-4">Remove from Set List</v-btn>
-              <v-btn v-else-if="songExists && !in_set_list" color="secondary" class="mr-4">Add to Set List</v-btn>
+              <v-btn v-if="songExists && in_set_list" color="secondary" class="mr-4 mt-4">Remove from Set List</v-btn>
+              <v-btn v-else-if="songExists && !in_set_list" color="secondary" class="mr-4 mt-4">Add to Set List</v-btn>
 
-              <v-btn color="primary" @click="onSaveClick">Save</v-btn>
+              <v-btn color="primary" class="mt-4" @click="onSaveClick">Save</v-btn>
             </v-row>
           </v-container>
         </v-form>
       </v-col>
     </v-row>
 
-    <!-- <iframe :src="lyrics_url" width="100%" height="800px"></iframe> -->
+    <v-btn
+      v-if="tab != '' && songExists"
+      color="secondary"
+      class="ma-4"
+      @click="showTab = !showTab"
+    >
+      View Tab
+    </v-btn>
+    
+    <v-textarea v-if="showTab" outlined dense v-model="tab" label="Tab" auto-grow @blur="tabInput" />
+
+<!--     <iframe :src="lyrics_url" width="100%" height="800px"></iframe> -->
 
     <v-snackbar v-model="snackbar" timeout="2000" color="primary">Saved</v-snackbar>
   </div>
@@ -96,7 +120,9 @@ export default Vue.extend({
         time: (v: string) => /^[0-9]+:[0-9]{2}$|^$/.test(v) || "Must be time format (0:00)"
       },
       snackbar: false,
-      loading: true
+      loading: true,
+      showTab: false,
+      editTab: false
     }
   },
 
@@ -115,9 +141,11 @@ export default Vue.extend({
         this.song_key = data.song_key
         this.tuning = data.tuning
         this.duration = this.secondsToMinutes(data.duration_seconds)
-        if (this.tab_link != "") {
-          this.getTabContent()
-        }
+        this.tab = data.tab
+        // if (this.tab_link != "") {
+        //   this.getTabContent()
+        // }
+        // this.getLyrics()
         this.in_set_list = data.in_set_list
         title += this.title
       } else {
@@ -136,6 +164,7 @@ export default Vue.extend({
         song_key: this.song_key && this.song_key.trim() || '',
         tuning: this.tuning && this.tuning.trim() || '',
         duration_seconds: (this.duration && this.minutesToSeconds(this.duration.trim())) || '',
+        tab: this.tab && this.tab.trim() || ''
       }
       this.id ? this.updateSong(data, this.id) : this.addSong(data)
     },
@@ -174,24 +203,26 @@ export default Vue.extend({
     getTabContent() {
       // const xhttp = new XMLHttpRequest()
       // xhttp.open("GET", this.tab_link)
+      // xhttp.setRequestHeader("Access-Control-Allow-Headers", "*")
+      // xhttp.setRequestHeader("Access-Control-Allow-Origin", "*")
       // xhttp.send()
-      // const response = xhttp.responseText;
+      // const response = xhttp.responseText
       // console.log(response)
     },
 
     // onLyricsClick() {
     //   this.getLyrics()
     // },
-    // getLyrics() {
-    //   if (this.lyrics_url != '') {
-    //     const xhttp = new XMLHttpRequest()
-    //     xhttp.open("GET", this.lyrics_url)
-    //     xhttp.send()
-    //     const response = xhttp.responseText
-    //     console.log(response)
-    //     this.lyrics = response
-    //   }
-    // }\
+    getLyrics() {
+      if (this.lyrics_url != '') {
+        const xhttp = new XMLHttpRequest()
+        xhttp.open("GET", this.lyrics_url)
+        xhttp.send()
+        const response = xhttp.responseText
+        console.log(response)
+        this.lyrics = response
+      }
+    },
 
     secondsToMinutes(value: number): string {
       if ([NaN, null, undefined, ""].includes(value)) {
@@ -214,6 +245,7 @@ export default Vue.extend({
     },
 
     handlePaste(event) {
+      // Handle tab separated values pasted into Title field
       const text = event.clipboardData.getData('text')
       if (text.includes('\t')) {
         const arr = text.split('\t')
@@ -226,6 +258,10 @@ export default Vue.extend({
         this.duration = this.secondsToMinutes(arr[6]) || ''
         this.tab_link = arr[7] || ''
       }
+    },
+    
+    tabInput() {
+      this.tab = this.tab && this.tab.replace(/^\n/gm, '') || ''
     }
   },
 
@@ -243,5 +279,11 @@ export default Vue.extend({
 
 ::v-deep .v-snackbar__wrapper {
   min-width: 0;
+}
+
+::v-deep .v-textarea textarea {
+  line-height: 1.2rem;
+  padding: 1rem;
+  font-family: monospace;
 }
 </style>

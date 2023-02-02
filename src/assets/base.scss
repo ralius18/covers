@@ -10,3 +10,30 @@ a {
 .primary {
   color: black !important;
 }
+
+.row {
+  margin: 0 12px;
+}
+
+.search {
+  max-width: 40%;
+}
+
+.v-data-table {
+  background: unset !important;
+  user-select: none;
+
+  thead {
+    tr td:hover {
+      background: var(--v-background-lighten1) !important;
+    }
+  }
+
+  tbody {
+    tr {
+      &:hover {
+        background: var(--v-background-lighten1) !important;
+      }
+    }
+  }
+}

@@ -40,8 +40,7 @@ export default Vue.extend({
 .main {
   width: 1200px;
   margin: 0 auto 64px;
-  padding: 0 64px !important;
-  // padding-bottom: 64px;
+  padding: 0 16px !important;
 }
 
 .v-application {

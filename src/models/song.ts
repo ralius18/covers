@@ -11,6 +11,7 @@ export class Song {
   tuning = ''
   duration_seconds = 0
   in_set_list = false
+  tab = ''
 
   constructor(data: DocumentData) {
     if (data) {
@@ -24,6 +25,7 @@ export class Song {
       this.tuning = data.tuning
       this.duration_seconds = data.duration_seconds
       this.in_set_list = data.in_set_list
+      this.tab = data.tab
     }
   }
 }

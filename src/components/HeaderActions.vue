@@ -2,8 +2,8 @@
   <v-row>
     <slot />
     <v-spacer />
-    <router-link to="/setlist" class="mr-4">
-      <v-btn color="secondary">Set List</v-btn>
+    <router-link to="/setlists" class="mr-4">
+      <v-btn color="secondary">Set Lists</v-btn>
     </router-link>
     <router-link to="/add">
       <v-btn color="primary">Add New</v-btn>

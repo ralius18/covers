@@ -8,6 +8,7 @@ import HomeView from "@/views/HomeView.vue"
 import LoginView from "@/views/LoginView.vue"
 import AddView from "@/views/AddView.vue"
 import SetListView from "@/views/SetListView.vue"
+import SetsView from "@/views/SetsView.vue"
 import SongView from "@/views/SongView.vue"
 import { useStore } from "@/stores/main";
 
@@ -19,7 +20,8 @@ const router = new VueRouter({
     { path: '/', name: 'HomeView', component: HomeView },
     { path: '/login', name: 'LoginView', component: LoginView },
     { path: '/add', name: 'AddView', component: AddView },
-    { path: '/setlist', name: 'SetListView', component: SetListView },
+    { path: '/setlist/:id', name: 'SetListView', component: SetListView },
+    { path: '/setlists', name: 'SetsView', component: SetsView },
     { path: '/song/:id', name: 'SongView', component: SongView }
   ]
 });
@@ -33,7 +35,7 @@ new Vue({
   vuetify,
   router,
   pinia,
-  render: (h) => h(App),
+  render: (h) => h(App)
 }).$mount("#app");
 
 router.beforeEach((to, from, next) => {

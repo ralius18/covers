@@ -11,22 +11,20 @@
     </header-actions>
 
     <v-container>
-      <b>Total:</b> {{ sortedSongs.length }}
-      <div v-if="isSetList">
-        <b>Duration:</b> {{ totalDuration }}
+      <div class="pl-4">
+        <b>Total:</b> {{ songs.length }}
       </div>
 
       <v-data-table
-        class="song-list"
         :headers="headers"
-        :items="sortedSongs"
+        :items="songs"
         :sort-by="sortBy"
         :search="search"
-        @click:row="clickRow"
         :loading="loading"
         multi-sort
         disable-pagination
         hide-default-footer
+        mobile-breakpoint="0"
       >
         <template #item.addToSet="{ item }">
           <v-btn
@@ -48,6 +46,15 @@
           >
             <v-icon>mdi-plus</v-icon>
           </v-btn>
+        </template>
+
+        <template #item.title="{item}">
+          <router-link :to="`/song/${item.id}`">
+            {{ item.title }}
+          </router-link>
+          <div v-if="$vuetify.breakpoint.mobile">
+            {{ item.artist }}
+          </div>
         </template>
 
         <template #item.tab_link="{ item }">
@@ -79,13 +86,6 @@ export default Vue.extend({
     HeaderActions
   },
 
-  props: {
-    isSetList: {
-      type: Boolean,
-      default: false
-    }
-  },
-
   mounted () {
     this.$bind('songs', db.collection('songs'))
       .then(() => {
@@ -97,10 +97,10 @@ export default Vue.extend({
     return{
       search: '',
       songs: [] as Song[],
+      sortBy: ['artist', 'title'],
       headers: [
         { text: "", value: "addToSet", width: 50, sortable: false },
         { text: "Title", value: "title" },
-        { text: "Artist", value: "artist", width: 220, groupable: true },
         { text: "Tab", value: "tab_link", width: 70 },
         { text: "Genre", value: "genre", width: 120 },
         { text: "Capo", value: "capo", width: 80 },
@@ -108,7 +108,6 @@ export default Vue.extend({
         { text: "Tuning", value: "tuning", width: 120 },
         { text: "Duration", value: "duration_seconds", width: 100 }
       ],
-      sortBy: ['artist', 'title'],
       loading: true
     }
   },
@@ -180,45 +179,6 @@ export default Vue.extend({
   },
 
   computed: {
-    totalDuration(): string {
-      let sum = 0
-      this.sortedSongs.forEach(song => sum += song.duration_seconds ? song.duration_seconds : 0)
-      return sum == 0 ? '-:--' : this.secondsToMinutes(sum)
-    },
-
-    sortedSongs: function (): Song[] {
-      let arr = this.songs
-      if (this.isSetList) {
-        arr = arr.filter(s => s.in_set_list)
-      }
-      return arr
-    }
-  },
+  }
 });
 </script>
-
-<style scoped lang="scss">
-.search {
-  max-width: 40%;
-}
-
-::v-deep .song-list {
-  background: unset !important;
-
-  thead {
-    tr td:hover {
-      background: var(--v-background-lighten1) !important;
-    }
-  }
-
-  tbody {
-    tr {
-      cursor: pointer;
-
-      &:hover {
-        background: var(--v-background-lighten1) !important;
-      }
-    }
-  }
-}
-</style>
